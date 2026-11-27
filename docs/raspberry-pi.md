@@ -11,6 +11,20 @@
 | Network | **Ethernet to the router** if possible, otherwise Wi-Fi | One less wireless hop, and the dongle is already on Wi-Fi |
 | Power | Run **the Pi and the Wi-Fi router from the inverter's backup (output) side** | During load-shedding the dongle stays powered by the inverter, but if the router or Pi lose power, logging stops exactly when it's most interesting. A Pi uses about 3–5 W. |
 
+### Chosen: Raspberry Pi 3 Model B (decided 2026-11-27)
+
+**Fit:** it's fine for this app.
+- **CPU:** a quad Cortex-A53, which is **64-bit capable**, so the arm64 OS and Node 24 work.
+- **Memory:** 1 GB RAM is plenty. The app uses ~60–80 MB.
+- **Network:** 100 Mb Ethernet and 2.4 GHz Wi-Fi.
+
+Pi 3-specific points:
+- **Use the Lite (no desktop) 64-bit image.** It leaves RAM free and boots fast.
+- **Use a proper 5 V / 2.5 A supply.** Old phone chargers cause undervoltage (watch for `vcgencmd get_throttled` ≠ `0x0`), and undervoltage is the #1 cause of SD card corruption on Pi 3s.
+- **USB/SSD boot needs a one-time step.** Unlike the 3B+, the plain 3B needs an OTP bit set first (`program_usb_boot_mode=1` in `config.txt`, boot once, then remove it). Simpler: boot from the SD card and keep **only the database on a USB stick**, or just rely on the batched writes plus backups in section 5.
+- **`npm ci` takes a minute or two.** There are no native builds, so nothing compiles.
+- **Prefer Ethernet.** The Pi 3's Wi-Fi shares the 2.4 GHz band with the dongle (channel 2) and is weaker than newer models.
+
 ## 2. OS & base setup
 
 1. **Flash the SD card.** Use **Raspberry Pi OS Lite (64-bit, Bookworm or newer)** with Raspberry Pi Imager. In Imager's settings, set:
@@ -140,7 +154,7 @@ journalctl -u lenox-local -f     # logs
 
 ## 8. Open questions / decisions for you
 
-1. **Which Pi model** do you have (or will you buy)? This decides 64-bit support and whether a USB SSD makes sense.
+1. ~~Which Pi model?~~ **Pi 3 Model B** (see section 1).
 2. **Ethernet or Wi-Fi** for the Pi?
 3. **Are the router and Pi on the inverter's backup output?** If the router is not, local monitoring dies during load-shedding.
 4. **Remote access:** Tailscale, Cloudflare, or LAN only?
