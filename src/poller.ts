@@ -18,6 +18,8 @@ export interface PollerOptions {
   maxFailedCycles?: number;
   /** While the inverter isn't answering, try one tiny read this often. */
   silentProbeMs?: number;
+  /** Pause after a garbled (CRC/length) reply before sending anything else. */
+  quietAfterErrorMs?: number;
 }
 
 type Events = {
@@ -48,7 +50,7 @@ export class Poller extends EventEmitter<Events> {
     this.#announcer = announcer;
     this.opts = {
       slave: 1, fastIntervalMs: 2000, slowIntervalMs: 60_000, announceIntervalMs: 10_000,
-      keepaliveMs: 0, maxFailedCycles: 3, silentProbeMs: 20_000, ...opts,
+      keepaliveMs: 0, maxFailedCycles: 3, silentProbeMs: 20_000, quietAfterErrorMs: 5000, ...opts,
     };
   }
 
@@ -85,6 +87,8 @@ export class Poller extends EventEmitter<Events> {
     const res = parseReadResponse(raw, this.opts.slave, count);
     if (res.kind !== 'ok') {
       this.emit('readError', { start, count }, res.kind === 'exception' ? `exception ${res.code}` : res.kind === 'invalid' ? res.reason : 'inverter did not answer');
+      // A garbled reply means the serial line was disturbed; give it a quiet window before the next request.
+      if (res.kind === 'invalid') await new Promise((r) => setTimeout(r, this.opts.quietAfterErrorMs));
       return 'silent';
     }
     res.registers.forEach((v, i) => this.cache.set(start + i, v));

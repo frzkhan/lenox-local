@@ -44,7 +44,7 @@ export class CollectorServer extends EventEmitter<Events> {
   constructor(opts: CollectorOptions) {
     super();
     this.opts = {
-      host: '0.0.0.0', requestTimeoutMs: 4000, interRequestGapMs: 120, heartbeatSec: 30,
+      host: '0.0.0.0', requestTimeoutMs: 4000, interRequestGapMs: 300, heartbeatSec: 30,
       devcode: DEFAULT_DEVCODE, ...opts,
     };
     this.#server = net.createServer((s) => this.#accept(s));
