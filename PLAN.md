@@ -119,6 +119,12 @@ test/fixtures/               # frames from probe/captures
 | 3 | Web dashboard (phone-friendly) | 🟡 built (`web/`: power flow, battery, today, details, uPlot history + SOC, daily bars with table), checked at desktop and 375 px width. Blocked on the inverter link: see below. |
 
 **Open issue (2026-11-27 09:24):** after ~25 s of polling in the 5th session, the inverter stopped answering Modbus. The first failed read was a CRC mismatch; every read after that returned an empty FC=4 reply (the dongle forwards, the inverter is silent). It is still silent after 3 quiet minutes and with 1-register reads on any devcode. The app now **backs off** in this state: one tiny read every 20 s, no reconnect loop, `inverterResponding:false` in `/api/status`, and the dashboard dims. The longest clean run so far is ~90 s. **Do a 30–60 min soak before milestone 4.**
+
+Diagnosis (09:38–09:44):
+- **The cloud gets no answer either.** `probe/cloud-proxy.mjs` relays dongle ↔ `iot.eybond.com:18899` and logs both directions (capture in `probe/captures/cloud-proxy-*.jsonl`). The real cloud sent bare Modbus reads `01 03 0000 0001` and `01 03 0064 0001`, and the inverter answered neither. After that the cloud only sent `AT+HTBT?` heartbeats. So the dongle-to-inverter link is down for everyone, not just for us. The phone app's "fresh" timestamp is probably driven by the dongle heartbeat.
+- **The cloud uses a different framing.** It speaks *transparent* mode on port 18899: AT text commands plus bare Modbus RTU, with no Eybond header. On our port 8899 the dongle answers Eybond-header frames and AT commands, but bare RTU got no reply (tested while the inverter was silent, so that result is inconclusive).
+- **Dongle facts from read-only AT queries:** `AT+UART:9600,8,1,NONE`, `AT+CLDSRVHOST1:iot.eybond.com,18899,TCP`, `AT+FWVER:7.63.6.191`, `AT+WFSS:-55` (Wi-Fi RSSI). The cloud also sets the dongle clock with `AT+SYST=`.
+- **Next step:** physically reset the link. Unplug the dongle from the inverter, wait 10 s and plug it back in. If it is still silent, check the inverter's comm settings or LCD, or restart the inverter.
 | 4 | Always-on deployment: launchd on the Mac, or Docker on a Pi; DHCP reservation for the dongle; health page | |
 | 5 (opt.) | MQTT / Home Assistant, alerts (grid lost, SOC low), CSV export, optional relay to the Eybond cloud so the phone app keeps working | |
 | 6 (opt., careful) | Settings writes (FC16) for the ToU and charge limits: off by default, with confirmation, read-back and rate limits | |
