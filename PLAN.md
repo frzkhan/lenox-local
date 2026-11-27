@@ -116,7 +116,9 @@ test/fixtures/               # frames from probe/captures
 | 0b | Confirm the register map against the LCD and a published Deye map; measure redirect persistence; finish the scan to 0x04FF and FC4 | next |
 | 1 | Collector, Eybond and Modbus libraries, Deye map, unit tests from fixtures; console prints live values | ✅ done: `DONGLE_IP=192.168.0.101 npm run live`; 11 tests pass; ran ~90 s live at 2 s/update with no drops |
 | 2 | SQLite logging, REST/WebSocket API, energy totals (prefer the inverter's own kWh registers) | ✅ done: `DONGLE_IP=192.168.0.101 npm start` serves http://<mac>:8080 (`/api/live`, `/api/status`, `/api/history?range=1h…365d`, `/api/energy/daily?days=N`, `ws /ws/live`); DB at `data/lenox.db` (built-in `node:sqlite`); 17 tests pass; verified live |
-| 3 | Web dashboard (phone-friendly) | |
+| 3 | Web dashboard (phone-friendly) | 🟡 built (`web/`: power flow, battery, today, details, uPlot history + SOC, daily bars with table), checked at desktop and 375 px width. Blocked on the inverter link: see below. |
+
+**Open issue (2026-11-27 09:24):** after ~25 s of polling in the 5th session, the inverter stopped answering Modbus. The first failed read was a CRC mismatch; every read after that returned an empty FC=4 reply (the dongle forwards, the inverter is silent). It is still silent after 3 quiet minutes and with 1-register reads on any devcode. The app now **backs off** in this state: one tiny read every 20 s, no reconnect loop, `inverterResponding:false` in `/api/status`, and the dashboard dims. The longest clean run so far is ~90 s. **Do a 30–60 min soak before milestone 4.**
 | 4 | Always-on deployment: launchd on the Mac, or Docker on a Pi; DHCP reservation for the dongle; health page | |
 | 5 (opt.) | MQTT / Home Assistant, alerts (grid lost, SOC low), CSV export, optional relay to the Eybond cloud so the phone app keeps working | |
 | 6 (opt., careful) | Settings writes (FC16) for the ToU and charge limits: off by default, with confirmation, read-back and rate limits | |

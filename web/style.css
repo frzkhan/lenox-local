@@ -89,6 +89,8 @@ h2 { font-size: 13px; margin: 0; font-weight: 600; color: var(--ink-2); text-tra
 .v-label { fill: var(--ink); font-size: 14px; font-weight: 600; }
 .v-label.mid { text-anchor: middle; }
 .node.off .ring { opacity: 0.45; }
+body.stale #flow, body.stale .hero, body.stale .kv dd { opacity: 0.45; }
+body.stale .edge.on { animation: none; }
 
 /* battery */
 .hero { font-size: 48px; font-weight: 650; letter-spacing: -0.02em; line-height: 1; margin: 4px 0 12px; }

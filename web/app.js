@@ -82,17 +82,25 @@ function renderLive(s) {
   updateConn();
 }
 
+let serverStatus = null;
 function renderStatus(st) {
+  serverStatus = st;
   if (st.donglePn) $('foot-pn').textContent = `Dongle ${st.donglePn}`;
-  if (!st.dongleConnected) setConn('down', 'Inverter offline');
+  updateConn();
 }
 
 function updateConn() {
-  if (!wsOk) return setConn('down', 'Server offline');
+  const age = lastAt ? Math.round((Date.now() - lastAt) / 1000) : Infinity;
+  const span = age < 120 ? `${age}s` : `${Math.round(age / 60)} min`;
+  const ago = age === Infinity ? '' : ` · data ${span} old`;
+  // Freeze + dim the live view whenever the numbers on screen are not current.
+  document.body.classList.toggle('stale', age > 10);
+  if (!wsOk) return setConn('down', `Server offline${ago}`);
+  if (serverStatus && !serverStatus.dongleConnected) return setConn('down', `Dongle not connected${ago}`);
+  if (serverStatus && serverStatus.inverterResponding === false) return setConn('down', `Inverter not answering${ago}`);
   if (!lastAt) return setConn('wait', 'Waiting for data');
-  const age = Math.round((Date.now() - lastAt) / 1000);
   if (age <= 10) setConn('live', 'Live');
-  else setConn('stale', `Last update ${age < 120 ? `${age}s` : `${Math.round(age / 60)} min`} ago`);
+  else setConn('stale', `Last update ${span} ago`);
 }
 setInterval(updateConn, 1000);
 
