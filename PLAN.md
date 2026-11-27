@@ -113,7 +113,7 @@ test/fixtures/               # frames from probe/captures
 | # | Deliverable | Status |
 |---|---|---|
 | 0 | Probe: redirect, protocol, register sample | ✅ done |
-| 0b | Confirm the register map against the LCD and a published Deye map; measure redirect persistence; finish the scan to 0x04FF and FC4 | next |
+| 0b | Confirm the register map against the LCD and a published Deye map; measure redirect persistence; finish the scan to 0x04FF and FC4 | 🟡 **LCD cross-check passed.** The inverter screen (brand on the LCD: "Ziewnic", a Deye-platform unit) showed PV 2.74 kW, battery 58 % −0.69 kW (charging), load 1.95 kW, grid 0.00 kW ✕. Our readings minutes later were PV 2.68 kW, battery 58 % charging 0.63 kW, load 1.94 kW, grid off. Sign convention (negative = charging) and scales match. The rest is still open. |
 | 1 | Collector, Eybond and Modbus libraries, Deye map, unit tests from fixtures; console prints live values | ✅ done: `DONGLE_IP=192.168.0.101 npm run live`; 11 tests pass; ran ~90 s live at 2 s/update with no drops |
 | 2 | SQLite logging, REST/WebSocket API, energy totals (prefer the inverter's own kWh registers) | ✅ done: `DONGLE_IP=192.168.0.101 npm start` serves http://<mac>:8080 (`/api/live`, `/api/status`, `/api/history?range=1h…365d`, `/api/energy/daily?days=N`, `ws /ws/live`); DB at `data/lenox.db` (built-in `node:sqlite`); 17 tests pass; verified live |
 | 3 | Web dashboard (phone-friendly) | 🟡 built (`web/`: power flow, battery, today, details, uPlot history + SOC, daily bars with table), checked at desktop and 375 px width. Blocked on the inverter link: see below. |

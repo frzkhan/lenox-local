@@ -21,48 +21,60 @@
   <main class="grid">
     <section class="card flow-card" aria-labelledby="flow-h">
       <div class="card-head"><h2 id="flow-h">Power flow</h2><span class="muted" id="inv-state">–</span></div>
-      <svg id="flow" viewBox="0 0 360 275" role="img" aria-label="Live power flow between solar, grid, battery and load">
+      <svg id="flow" viewBox="0 0 400 290" role="img" aria-label="Live power flow between solar, grid, battery and home">
         <defs>
           <!-- one arrowhead per series colour; auto-start-reverse lets marker-start point back toward the path's start -->
-          <marker id="a-pv" class="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--s-pv)"/></marker>
-          <marker id="a-grid" class="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--s-grid)"/></marker>
-          <marker id="a-load" class="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--s-load)"/></marker>
-          <marker id="a-batt" class="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--s-batt)"/></marker>
+          <marker id="a-pv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--s-pv)"/></marker>
+          <marker id="a-grid" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--s-grid)"/></marker>
+          <marker id="a-load" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--s-load)"/></marker>
+          <marker id="a-batt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--s-batt)"/></marker>
         </defs>
+        <!-- connectors are drawn source→target: solar→inv, grid→inv, inv→home, inv→battery -->
         <g class="edges">
-          <path id="e-pv" class="edge" d="M180 62 V112"/>
-          <path id="e-grid" class="edge" d="M84 135 H152"/>
-          <path id="e-load" class="edge" d="M208 135 H276"/>
-          <path id="e-batt" class="edge" d="M180 158 V208"/>
+          <path id="e-pv" class="edge" d="M128 60 H166 V146 H174"/>
+          <path id="e-grid" class="edge" d="M272 60 H234 V146 H226"/>
+          <path id="e-load" class="edge" d="M226 154 H234 V240 H272"/>
+          <path id="e-batt" class="edge" d="M174 154 H166 V240 H128"/>
         </g>
-        <g class="node" transform="translate(180 40)">
-          <circle r="22" class="ring s-pv"/>
-          <path class="icon" d="M-7 -7h14l3 14h-20z M-7 0h17 M0 -7v14" />
-          <text y="-30" class="n-label">Solar</text>
+        <g id="grid-x" class="x-mark" transform="translate(234 100)" hidden><path d="M-5 -5l10 10M5 -5l-10 10"/></g>
+        <g class="gauge" id="gg-pv" transform="translate(78 84)">
+          <text class="n-label" y="-54">Solar</text>
+          <path class="g-bg" d="M-31.11 31.11 A44 44 0 1 1 31.11 31.11"/>
+          <path class="g-arc s-pv" id="g-pv" d=""/>
+          <text class="g-tick" x="-36" y="48">0</text><text class="g-tick" x="36" y="48" id="gmax-pv">10</text>
+          <g class="icon" transform="translate(0 -6)"><path d="M-9 -12a5 5 0 0 1 10 0 M-4 -21v-3 M-12 -16l-2-2 M4 -16l2-2"/><path d="M-13 9h26l-5-14h-16z M-10 2h21 M-4 -5l-2 14 M4 -5l2 14"/></g>
         </g>
-        <g class="node" transform="translate(62 135)">
-          <circle r="22" class="ring s-grid"/>
-          <path class="icon" d="M-6 9l6-18 6 18 M-8 -3h16 M-7 3h14" />
-          <text y="38" class="n-label">Grid</text>
+        <g class="gauge" id="gg-grid" transform="translate(322 84)">
+          <text class="n-label" y="-54">Grid</text>
+          <path class="g-bg" d="M-31.11 31.11 A44 44 0 1 1 31.11 31.11"/>
+          <path class="g-arc s-grid" id="g-grid" d=""/>
+          <text class="g-tick" x="-36" y="48">0</text><text class="g-tick" x="36" y="48" id="gmax-grid">8</text>
+          <g class="icon" transform="translate(0 -6)"><path d="M-8 12l8-26 8 26 M-11 -8h22 M-8 0h16 M-5 -8l10 8 M5 -8l-10 8 M-5 0l9 12 M5 0l-9 12"/></g>
         </g>
-        <g class="node" transform="translate(298 135)">
-          <circle r="22" class="ring s-load"/>
-          <path class="icon" d="M-8 0l8-7 8 7v8h-16z M-2 8v-5h4v5" />
-          <text y="38" class="n-label">Home</text>
+        <g class="gauge" id="gg-batt" transform="translate(78 220)">
+          <text class="n-label" y="-54">Battery</text>
+          <path class="g-bg" d="M-31.11 31.11 A44 44 0 1 1 31.11 31.11"/>
+          <path class="g-arc s-batt" id="g-batt" d=""/>
+          <text class="g-tick" x="-36" y="48">0</text><text class="g-tick" x="36" y="48" id="gmax-batt">100%</text>
+          <g class="icon" transform="translate(0 2) scale(0.85)"><rect x="-12" y="-7" width="22" height="14" rx="2"/><path d="M12 -3v6 M0 -5l-4 6h5l-4 6"/></g>
+          <text class="g-soc" id="v-soc" y="-16">–</text>
         </g>
-        <g class="node" transform="translate(180 230)">
-          <circle r="22" class="ring s-batt"/>
-          <rect class="icon" x="-8" y="-5" width="15" height="10" rx="1.5"/><path class="icon" d="M9 -2v4"/>
-          <text y="38" class="n-label">Battery</text>
+        <g class="gauge" id="gg-load" transform="translate(322 220)">
+          <text class="n-label" y="-54">Home</text>
+          <path class="g-bg" d="M-31.11 31.11 A44 44 0 1 1 31.11 31.11"/>
+          <path class="g-arc s-load" id="g-load" d=""/>
+          <text class="g-tick" x="-36" y="48">0</text><text class="g-tick" x="36" y="48" id="gmax-load">8</text>
+          <g class="icon" transform="translate(0 -6)"><path d="M-13 1l13-12 13 12 M-9 -2v13h18v-13 M-3 11v-7h6v7"/></g>
         </g>
-        <g class="node hub" transform="translate(180 135)">
-          <rect x="-26" y="-22" width="52" height="44" rx="8" class="ring hub-ring"/>
-          <text y="5" class="hub-text">INV</text>
+        <g class="hub" transform="translate(200 150)">
+          <circle r="22" class="hub-ring"/>
+          <path class="hub-icon" d="M2 -12l-9 14h7l-2 10 9 -14h-7z"/>
+          <text class="hub-state" id="hub-state" y="-30">–</text>
         </g>
-        <text id="v-pv" x="196" y="92" class="v-label">–</text>
-        <text id="v-grid" x="118" y="124" class="v-label mid">–</text>
-        <text id="v-load" x="242" y="124" class="v-label mid">–</text>
-        <text id="v-batt" x="196" y="188" class="v-label">–</text>
+        <text id="v-pv" class="g-num" x="78" y="112">–</text>
+        <text id="v-grid" class="g-num" x="322" y="112">–</text>
+        <text id="v-batt" class="g-num" x="78" y="248">–</text>
+        <text id="v-load" class="g-num" x="322" y="248">–</text>
       </svg>
     </section>
 

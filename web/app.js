@@ -22,6 +22,19 @@ function setConn(state, text) {
   $('conn-text').textContent = text;
 }
 
+const fmtKW = (w) => `${(w / 1000).toFixed(2)} kW`;
+// Gauge full-scale values, matching the inverter's screen (PV 0–10 kW; grid/home 0–rated).
+const GAUGE_MAX = { pv: 10_000, rated: 8_000 };
+
+/** 270° gauge arc (open at the bottom), radius 44, filled to `frac` of the scale. */
+function gauge(id, frac) {
+  const f = Math.max(0, Math.min(1, frac || 0));
+  if (f < 0.005) { $(id).setAttribute('d', ''); return; }
+  const r = 44, a0 = (135 * Math.PI) / 180, a1 = a0 + f * 1.5 * Math.PI;
+  const p = (a) => `${(r * Math.cos(a)).toFixed(2)} ${(r * Math.sin(a)).toFixed(2)}`;
+  $(id).setAttribute('d', `M${p(a0)} A${r} ${r} 0 ${f > 2 / 3 ? 1 : 0} 1 ${p(a1)}`);
+}
+
 /** Paths are drawn source→target (solar→inv, grid→inv, inv→home, inv→battery); `reverse` = energy flows the other way. */
 function edge(id, watts, reverse) {
   const e = $(id);
@@ -47,11 +60,22 @@ function renderLive(s) {
   edge('e-grid', g.connected ? g.powerW : 0, g.powerW < 0);
   edge('e-load', s.load.powerW, false);
   edge('e-batt', b.powerW, b.powerW > 0);
-  $('v-pv').textContent = fmtW(s.pv.powerW);
-  $('v-load').textContent = fmtW(s.load.powerW);
-  $('v-grid').textContent = g.connected ? fmtW(Math.abs(g.powerW)) + (g.powerW < -15 ? ' out' : '') : 'Off';
-  $('v-batt').textContent = `${fmtW(Math.abs(b.powerW))}${b.state === 'charging' ? ' in' : b.state === 'discharging' ? ' out' : ''}`;
-  document.querySelector('.ring.s-grid').parentElement.classList.toggle('off', !g.connected);
+  // gauges: power against the scale, battery against SOC (like the inverter's own screen)
+  const rated = s.inverter.ratedPowerW || GAUGE_MAX.rated;
+  $('gmax-grid').textContent = $('gmax-load').textContent = String(Math.round(rated / 1000));
+  gauge('g-pv', s.pv.powerW / GAUGE_MAX.pv);
+  gauge('g-grid', g.connected ? Math.abs(g.powerW) / rated : 0);
+  gauge('g-load', s.load.powerW / rated);
+  gauge('g-batt', b.soc / 100);
+  $('v-pv').textContent = fmtKW(s.pv.powerW);
+  $('v-load').textContent = fmtKW(s.load.powerW);
+  // magnitudes only: the connector arrows carry the direction
+  $('v-grid').textContent = g.connected ? fmtKW(Math.abs(g.powerW)) : 'Off';
+  $('v-soc').textContent = `${b.soc}%`;
+  $('v-batt').textContent = fmtKW(Math.abs(b.powerW));
+  $('gg-grid').classList.toggle('off', !g.connected);
+  $('grid-x').toggleAttribute('hidden', g.connected);
+  $('hub-state').textContent = s.inverter.state === 'normal' ? 'ON' : s.inverter.state.toUpperCase();
   $('inv-state').textContent = `Inverter ${s.inverter.state}`;
 
   // battery
