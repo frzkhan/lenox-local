@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)">
+  <title>Lenox Solar</title>
+  <link rel="stylesheet" href="/vendor/uplot/uPlot.min.css">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <h1>Lenox Solar</h1>
+      <div class="sub" id="sub">Local monitor</div>
+    </div>
+    <div class="pill" id="conn" data-state="wait"><span class="dot"></span><span id="conn-text">Connecting…</span></div>
+  </header>
+
+  <main class="grid">
+    <section class="card flow-card" aria-labelledby="flow-h">
+      <div class="card-head"><h2 id="flow-h">Power flow</h2><span class="muted" id="inv-state">–</span></div>
+      <svg id="flow" viewBox="0 0 360 275" role="img" aria-label="Live power flow between solar, grid, battery and load">
+        <g class="edges">
+          <path id="e-pv" class="edge" d="M180 62 V112"/>
+          <path id="e-grid" class="edge" d="M84 135 H152"/>
+          <path id="e-load" class="edge" d="M208 135 H276"/>
+          <path id="e-batt" class="edge" d="M180 158 V208"/>
+        </g>
+        <g class="node" transform="translate(180 40)">
+          <circle r="22" class="ring s-pv"/>
+          <path class="icon" d="M-7 -7h14l3 14h-20z M-7 0h17 M0 -7v14" />
+          <text y="-30" class="n-label">Solar</text>
+        </g>
+        <g class="node" transform="translate(62 135)">
+          <circle r="22" class="ring s-grid"/>
+          <path class="icon" d="M-6 9l6-18 6 18 M-8 -3h16 M-7 3h14" />
+          <text y="38" class="n-label">Grid</text>
+        </g>
+        <g class="node" transform="translate(298 135)">
+          <circle r="22" class="ring s-load"/>
+          <path class="icon" d="M-8 0l8-7 8 7v8h-16z M-2 8v-5h4v5" />
+          <text y="38" class="n-label">Home</text>
+        </g>
+        <g class="node" transform="translate(180 230)">
+          <circle r="22" class="ring s-batt"/>
+          <rect class="icon" x="-8" y="-5" width="15" height="10" rx="1.5"/><path class="icon" d="M9 -2v4"/>
+          <text y="38" class="n-label">Battery</text>
+        </g>
+        <g class="node hub" transform="translate(180 135)">
+          <rect x="-26" y="-22" width="52" height="44" rx="8" class="ring hub-ring"/>
+          <text y="5" class="hub-text">INV</text>
+        </g>
+        <text id="v-pv" x="196" y="92" class="v-label">–</text>
+        <text id="v-grid" x="118" y="124" class="v-label mid">–</text>
+        <text id="v-load" x="242" y="124" class="v-label mid">–</text>
+        <text id="v-batt" x="196" y="188" class="v-label">–</text>
+      </svg>
+    </section>
+
+    <section class="card" aria-labelledby="batt-h">
+      <div class="card-head"><h2 id="batt-h">Battery</h2><span class="muted" id="batt-state">–</span></div>
+      <div class="hero"><span id="soc">–</span><span class="unit">%</span></div>
+      <div class="socbar" role="meter" aria-valuemin="0" aria-valuemax="100" id="socbar"><div id="socfill"></div></div>
+      <dl class="kv">
+        <div><dt>Voltage</dt><dd id="b-v">–</dd></div>
+        <div><dt>Current</dt><dd id="b-a">–</dd></div>
+        <div><dt>Power</dt><dd id="b-w">–</dd></div>
+        <div><dt>Temperature</dt><dd id="b-t">–</dd></div>
+      </dl>
+    </section>
+
+    <section class="card" aria-labelledby="today-h">
+      <div class="card-head"><h2 id="today-h">Today</h2><span class="muted">kWh, inverter counters</span></div>
+      <div class="tiles">
+        <div class="tile"><span class="sw s-pv"></span><span class="t-label">Solar</span><span class="t-val" id="t-pv">–</span></div>
+        <div class="tile"><span class="sw s-load"></span><span class="t-label">Home</span><span class="t-val" id="t-load">–</span></div>
+        <div class="tile"><span class="sw s-grid"></span><span class="t-label">Grid bought</span><span class="t-val" id="t-grid">–</span></div>
+        <div class="tile"><span class="sw s-batt"></span><span class="t-label">Battery in / out</span><span class="t-val" id="t-batt">–</span></div>
+      </div>
+      <div class="selfsuff"><span class="muted">Self-sufficiency</span> <strong id="t-self">–</strong></div>
+    </section>
+
+    <section class="card" aria-labelledby="det-h">
+      <div class="card-head"><h2 id="det-h">Details</h2><span class="muted" id="clock">–</span></div>
+      <dl class="kv two">
+        <div><dt>PV string 1</dt><dd id="d-pv1">–</dd></div>
+        <div><dt>PV string 2</dt><dd id="d-pv2">–</dd></div>
+        <div><dt>Grid</dt><dd id="d-grid">–</dd></div>
+        <div><dt>Output</dt><dd id="d-out">–</dd></div>
+        <div><dt>Temperatures</dt><dd id="d-temp">–</dd></div>
+        <div><dt>Faults</dt><dd id="d-fault">–</dd></div>
+        <div><dt>Lifetime solar</dt><dd id="d-life">–</dd></div>
+        <div><dt>Serial / rating</dt><dd id="d-serial">–</dd></div>
+      </dl>
+    </section>
+
+    <section class="card wide" aria-labelledby="hist-h">
+      <div class="card-head">
+        <h2 id="hist-h">Power history</h2>
+        <div class="seg" role="group" aria-label="Time range" id="ranges">
+          <button data-r="1h">1h</button><button data-r="6h" aria-pressed="true">6h</button><button data-r="24h">24h</button><button data-r="7d">7d</button><button data-r="30d">30d</button>
+        </div>
+      </div>
+      <p class="hint">Battery: above zero = discharging, below zero = charging. Hover or tap the chart for values.</p>
+      <div id="chart-power" class="chart"></div>
+      <h3 class="chart-title">Battery state of charge (%)</h3>
+      <div id="chart-soc" class="chart small"></div>
+      <p class="empty" id="hist-empty" hidden>No history yet for this range. Data builds up while the app runs.</p>
+    </section>
+
+    <section class="card wide" aria-labelledby="daily-h">
+      <div class="card-head">
+        <h2 id="daily-h">Daily energy</h2>
+        <button class="link" id="daily-toggle" aria-expanded="false">Show table</button>
+      </div>
+      <div class="legend" id="daily-legend"></div>
+      <div id="daily" class="daily"></div>
+      <div id="daily-table" hidden></div>
+      <div class="tip" id="tip" role="tooltip" hidden></div>
+    </section>
+  </main>
+
+  <footer class="foot muted">Data straight from the inverter over your Wi-Fi. No cloud. <span id="foot-pn"></span></footer>
+
+  <script src="/vendor/uplot/uPlot.iife.min.js"></script>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

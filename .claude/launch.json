@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "lenox",
+      "runtimeExecutable": "/usr/bin/env",
+      "runtimeArgs": ["DONGLE_IP=192.168.0.101", "npm", "start"],
+      "port": 8080
+    }
+  ]
+}
