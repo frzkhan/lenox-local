@@ -31,6 +31,8 @@ export class CollectorLive extends EventEmitter<{ snapshot: [Snapshot]; status: 
     return {
       dongleConnected: c.connected,
       inverterResponding: this.#poller.inverterResponding,
+      dongleRestarts: this.#poller.dongleRestarts,
+      lastDongleRestartAt: this.#poller.lastDongleRestartAt ? new Date(this.#poller.lastDongleRestartAt).toISOString() : null,
       donglePn: c.pn,
       lastRxAgoSec: c.lastRx ? Math.round((Date.now() - c.lastRx) / 1000) : null,
       lastSnapshotAt: this.#poller.lastSnapshot?.time ?? null,

@@ -20,6 +20,14 @@ export interface PollerOptions {
   silentProbeMs?: number;
   /** Pause after a garbled (CRC/length) reply before sending anything else. */
   quietAfterErrorMs?: number;
+  /**
+   * When the inverter goes silent, restart the dongle with AT+RESET=S (clears the stall seen on this
+   * unit after ~600 forwarded requests). At most once per minRestartIntervalMs.
+   */
+  restartOnStall?: boolean;
+  minRestartIntervalMs?: number;
+  /** Proactively restart the dongle after this many forwarded requests (0 = off). */
+  restartEveryRequests?: number;
 }
 
 type Events = {
@@ -43,20 +51,27 @@ export class Poller extends EventEmitter<Events> {
   lastSnapshot: Snapshot | null = null;
   lastGoodReadAt = 0;
   inverterResponding = true;
+  dongleRestarts = 0;
+  lastDongleRestartAt = 0;
+  #requestsSinceRestart = 0;
 
   constructor(collector: CollectorServer, announcer: Announcer, opts: PollerOptions = {}) {
     super();
     this.#collector = collector;
     this.#announcer = announcer;
     this.opts = {
-      slave: 1, fastIntervalMs: 2000, slowIntervalMs: 60_000, announceIntervalMs: 10_000,
-      keepaliveMs: 0, maxFailedCycles: 3, silentProbeMs: 20_000, quietAfterErrorMs: 5000, ...opts,
+      slave: 1, fastIntervalMs: 2000, slowIntervalMs: 60_000, announceIntervalMs: 5_000,
+      keepaliveMs: 0, maxFailedCycles: 3, silentProbeMs: 20_000, quietAfterErrorMs: 5000,
+      restartOnStall: true, minRestartIntervalMs: 120_000, restartEveryRequests: 0, ...opts,
     };
   }
 
   start(): void {
     this.#running = true;
-    this.#collector.on('connected', () => { this.#lastSlow = 0; this.#failedCycles = 0; this.#linkFailures = 0; });
+    this.#collector.on('connected', () => {
+      this.#lastSlow = 0; this.#failedCycles = 0; this.#linkFailures = 0;
+      this.#lastProbe = 0; // if we were waiting on a silent inverter, check it right away
+    });
     void this.#announcer.announce();
     this.#timers.push(setInterval(() => {
       if (!this.#collector.connected) { this.emit('status', 'waiting for dongle, re-announcing'); void this.#announcer.announce(); }
@@ -78,6 +93,7 @@ export class Poller extends EventEmitter<Events> {
    */
   async readBlock(start: number, count: number): Promise<'ok' | 'silent' | 'link'> {
     let raw: Buffer;
+    this.#requestsSinceRestart++;
     try {
       raw = await this.#collector.request(buildReadHolding(this.opts.slave, start, count));
     } catch (e) {
@@ -102,9 +118,25 @@ export class Poller extends EventEmitter<Events> {
     this.emit('responding', v);
   }
 
+  /** Send AT+RESET=S; the dongle reboots and is re-announced by the disconnected-announce timer. */
+  #restartDongle(reason: string): boolean {
+    if (!this.#collector.restartDongle()) return false;
+    this.dongleRestarts++;
+    this.lastDongleRestartAt = Date.now();
+    this.#requestsSinceRestart = 0;
+    this.emit('status', `restarting dongle (${reason}), restart #${this.dongleRestarts}`);
+    setTimeout(() => void this.#announcer.announce(), 3000);
+    return true;
+  }
+
   async #cycle(): Promise<void> {
+    const n = this.opts.restartEveryRequests;
+    if (n > 0 && this.#requestsSinceRestart >= n && this.#restartDongle(`scheduled after ${this.#requestsSinceRestart} requests`)) return;
+
     // While the inverter is silent, don't hammer the bus: one tiny read per silentProbeMs.
     if (!this.inverterResponding) {
+      if (this.opts.restartOnStall && Date.now() - this.lastDongleRestartAt >= this.opts.minRestartIntervalMs
+        && this.#restartDongle('inverter still silent')) return;
       if (Date.now() - this.#lastProbe < this.opts.silentProbeMs) return;
       this.#lastProbe = Date.now();
       const r = await this.readBlock(184, 1);
@@ -126,7 +158,10 @@ export class Poller extends EventEmitter<Events> {
     if (ok === 0) {
       if (silent > 0) {
         // The dongle link is fine; reconnecting doesn't help a silent inverter.
-        if (++this.#failedCycles >= this.opts.maxFailedCycles) { this.#failedCycles = 0; this.#lastProbe = Date.now(); this.#setResponding(false); }
+        if (++this.#failedCycles >= this.opts.maxFailedCycles) {
+          this.#failedCycles = 0; this.#lastProbe = Date.now(); this.#setResponding(false);
+          if (this.opts.restartOnStall && Date.now() - this.lastDongleRestartAt >= this.opts.minRestartIntervalMs) this.#restartDongle('inverter silent');
+        }
       } else {
         this.#linkFailure();
       }

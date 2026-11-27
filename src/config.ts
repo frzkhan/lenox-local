@@ -24,6 +24,7 @@ export const config = {
   pollMs: Number(env.POLL_MS ?? 2000),
   keepaliveMs: Number(env.KEEPALIVE_MS ?? 0),
   debugFrames: env.DEBUG_FRAMES === '1',
+  restartEveryRequests: Number(env.DONGLE_RESET_EVERY ?? 0),
   webPort: Number(env.WEB_PORT ?? 8080),
   dbPath: env.DB_PATH ?? 'data/lenox.db',
 };

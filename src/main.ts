@@ -14,7 +14,7 @@ const log = (...a: unknown[]) => console.log(`[${new Date().toLocaleTimeString()
 const store = new Store(config.dbPath);
 const collector = new CollectorServer({ port: config.tcpPort });
 const announcer = new Announcer({ hostIp: config.hostIp, tcpPort: config.tcpPort, broadcast: config.broadcast, dongleIp: config.dongleIp });
-const poller = new Poller(collector, announcer, { fastIntervalMs: config.pollMs, keepaliveMs: config.keepaliveMs });
+const poller = new Poller(collector, announcer, { fastIntervalMs: config.pollMs, keepaliveMs: config.keepaliveMs, restartEveryRequests: config.restartEveryRequests });
 const live = new CollectorLive(collector, poller);
 
 collector.on('connected', (r) => log(`dongle connected from ${r}`));

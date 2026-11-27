@@ -129,6 +129,16 @@ export class CollectorServer extends EventEmitter<Events> {
     }
   }
 
+  /**
+   * Restart the dongle (documented Eybond command `AT+RESET=S`, "program reset").
+   * The dongle reboots, drops this socket and must be re-announced to come back.
+   */
+  restartDongle(): boolean {
+    if (!this.#sock) return false;
+    this.#sock.write('AT+RESET=S\r\n');
+    return true;
+  }
+
   /** Forward a raw device payload (Modbus RTU frame) and resolve with the device's reply payload. Serialized. */
   request(payload: Buffer): Promise<Buffer> {
     const run = async () => {

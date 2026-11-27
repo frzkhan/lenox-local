@@ -20,6 +20,9 @@ export interface Status {
   dongleConnected: boolean;
   /** False when the dongle is connected but the inverter stopped answering Modbus reads. */
   inverterResponding: boolean;
+  /** Automatic dongle restarts (AT+RESET=S) since the app started. */
+  dongleRestarts?: number;
+  lastDongleRestartAt?: string | null;
   donglePn: string;
   lastRxAgoSec: number | null;
   lastSnapshotAt: string | null;
