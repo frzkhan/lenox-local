@@ -125,7 +125,7 @@ Diagnosis (09:38–09:44):
 - **The cloud uses a different framing.** It speaks *transparent* mode on port 18899: AT text commands plus bare Modbus RTU, with no Eybond header. On our port 8899 the dongle answers Eybond-header frames and AT commands, but bare RTU got no reply (tested while the inverter was silent, so that result is inconclusive).
 - **Dongle facts from read-only AT queries:** `AT+UART:9600,8,1,NONE`, `AT+CLDSRVHOST1:iot.eybond.com,18899,TCP`, `AT+FWVER:7.63.6.191`, `AT+WFSS:-55` (Wi-Fi RSSI). The cloud also sets the dongle clock with `AT+SYST=`.
 - **Next step:** physically reset the link. Unplug the dongle from the inverter, wait 10 s and plug it back in. If it is still silent, check the inverter's comm settings or LCD, or restart the inverter.
-| 4 | Always-on deployment: launchd on the Mac, or Docker on a Pi; DHCP reservation for the dongle; health page | |
+| 4 | Always-on deployment on a **Raspberry Pi** (systemd, DHCP reservations, batched writes, backups, health endpoint) | planned: see [docs/raspberry-pi.md](docs/raspberry-pi.md) |
 | 5 (opt.) | MQTT / Home Assistant, alerts (grid lost, SOC low), CSV export, optional relay to the Eybond cloud so the phone app keeps working | |
 | 6 (opt., careful) | Settings writes (FC16) for the ToU and charge limits: off by default, with confirmation, read-back and rate limits | |
 
