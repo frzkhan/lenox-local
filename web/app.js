@@ -22,11 +22,17 @@ function setConn(state, text) {
   $('conn-text').textContent = text;
 }
 
+/** Paths are drawn source→target (solar→inv, grid→inv, inv→home, inv→battery); `reverse` = energy flows the other way. */
 function edge(id, watts, reverse) {
   const e = $(id);
   const on = Math.abs(watts) >= 15;
   e.classList.toggle('on', on);
   e.classList.toggle('rev', on && reverse);
+  // arrowhead at the end the energy is heading to
+  const marker = `url(#a-${id.slice(2)})`;
+  e.setAttribute('marker-end', on && !reverse ? marker : '');
+  e.setAttribute('marker-start', on && reverse ? marker : '');
+  e.setAttribute('aria-label', on ? `${id.slice(2)} ${reverse ? 'towards source' : 'towards target'}` : `${id.slice(2)} idle`);
   // faster dashes for more power: 2.4 s at ~0 W → 0.5 s at 5 kW+
   e.style.setProperty('--dur', `${Math.max(0.5, 2.4 - Math.abs(watts) / 2600).toFixed(2)}s`);
 }

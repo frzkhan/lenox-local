@@ -22,6 +22,13 @@
     <section class="card flow-card" aria-labelledby="flow-h">
       <div class="card-head"><h2 id="flow-h">Power flow</h2><span class="muted" id="inv-state">–</span></div>
       <svg id="flow" viewBox="0 0 360 275" role="img" aria-label="Live power flow between solar, grid, battery and load">
+        <defs>
+          <!-- one arrowhead per series colour; auto-start-reverse lets marker-start point back toward the path's start -->
+          <marker id="a-pv" class="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--s-pv)"/></marker>
+          <marker id="a-grid" class="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--s-grid)"/></marker>
+          <marker id="a-load" class="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--s-load)"/></marker>
+          <marker id="a-batt" class="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--s-batt)"/></marker>
+        </defs>
         <g class="edges">
           <path id="e-pv" class="edge" d="M180 62 V112"/>
           <path id="e-grid" class="edge" d="M84 135 H152"/>
